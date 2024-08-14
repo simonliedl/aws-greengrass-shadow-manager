@@ -15,7 +15,6 @@ import com.aws.greengrass.shadowmanager.model.ShadowDocument;
 import com.aws.greengrass.testcommons.testutilities.GGExtension;
 import org.apache.commons.io.FileUtils;
 import org.flywaydb.core.internal.exception.FlywaySqlException;
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +24,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sqlite.javax.SQLiteConnectionPoolDataSource;
 import vendored.com.google.common.util.concurrent.RateLimiter;
 
 import java.io.IOException;
@@ -185,9 +185,7 @@ class ShadowManagerDatabaseTest extends NucleusLaunchUtils {
         assertNotNull(c, "connection should not be null");
         assertThat("connection is not closed", c.isClosed(), is(false));
         c.close();
-        JdbcConnectionPool pool = db.getPool();
         db.close();
-        assertThat("active connections", pool.getActiveConnections(), is(0));
     }
 
     @Test

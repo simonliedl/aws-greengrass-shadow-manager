@@ -15,9 +15,9 @@ import lombok.Synchronized;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.internal.exception.FlywaySqlException;
-import org.h2.jdbc.JdbcSQLNonTransientException;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.h2.jdbcx.JdbcDataSource;
+import org.sqlite.SQLiteException;
+import org.sqlite.javax.SQLiteConnectionPoolDataSource;
+import org.sqlite.javax.SQLitePooledConnection;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,14 +38,9 @@ public class ShadowManagerDatabase implements Closeable {
     private static final String DATABASE_NAME = "shadow";
     // see https://www.h2database.com/javadoc/org/h2/engine/DbSettings.html
     // these setting optimize for minimal disk space over concurrent performance
-    private static final String DATABASE_FORMAT = "jdbc:h2:%s/%s"
-            + ";RETENTION_TIME=1000" // ms - time to keep values for before writing to disk (default is 45000)
-            + ";DEFRAG_ALWAYS=TRUE" // defragment db on shutdown (ensures only a single value in db on close)
-            + ";COMPRESS=TRUE" // compress large objects (clob/blob) (default false)
+    private static final String DATABASE_FORMAT = "jdbc:sqlite:%s/%s"
             ;
-    private final JdbcDataSource dataSource;
-
-    private JdbcConnectionPool pool;
+    private final SQLiteConnectionPoolDataSource dataSource;
 
     private static final Logger logger = LogManager.getLogger(ShadowManagerDatabase.class);
     private final Path databasePath;
@@ -67,8 +62,8 @@ public class ShadowManagerDatabase implements Closeable {
      * @param path a path to store the db.
      */
     public ShadowManagerDatabase(Path path) {
-        this.dataSource = new JdbcDataSource();
-        this.dataSource.setURL(String.format(DATABASE_FORMAT, path, DATABASE_NAME));
+        this.dataSource = new SQLiteConnectionPoolDataSource();
+        this.dataSource.setUrl(String.format(DATABASE_FORMAT, path, DATABASE_NAME));
         this.databasePath = path;
     }
 
@@ -106,7 +101,7 @@ public class ShadowManagerDatabase implements Closeable {
         try {
             migrateDB();
         } catch (FlywaySqlException flywaySqlException) {
-            if (flywaySqlException.getCause() instanceof JdbcSQLNonTransientException
+            if (flywaySqlException.getCause() instanceof SQLiteException
                     && flywaySqlException.getCause().getCause() instanceof IllegalStateException) {
                 logger.atError().cause(flywaySqlException).log("Shadow manager DB is corrupted");
                 return false;
@@ -130,11 +125,8 @@ public class ShadowManagerDatabase implements Closeable {
      * Get a reference to the connection pool.
      * @return JDBC connection pool
      */
-    public synchronized JdbcConnectionPool getPool() {
-        if (pool == null) {
-            pool = JdbcConnectionPool.create(dataSource);
-        }
-        return pool;
+    public synchronized SQLiteConnectionPoolDataSource getPool() {
+        return dataSource;
     }
 
     private void deleteDB(Path databasePath) throws IOException {
@@ -156,9 +148,6 @@ public class ShadowManagerDatabase implements Closeable {
     @SuppressWarnings("PMD.NullAssignment")
     @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR", justification = "Field gated by flag")
     public void close() {
-        if (pool != null) {
-            pool.dispose();
-            pool = null;
-        }
+        // no need to close the pool
     }
 }

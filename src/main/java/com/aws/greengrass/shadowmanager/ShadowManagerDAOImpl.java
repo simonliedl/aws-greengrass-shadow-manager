@@ -12,7 +12,7 @@ import com.aws.greengrass.shadowmanager.exception.ShadowManagerDataException;
 import com.aws.greengrass.shadowmanager.model.ShadowDocument;
 import com.aws.greengrass.shadowmanager.model.dao.SyncInformation;
 import com.aws.greengrass.util.Pair;
-import org.h2.jdbcx.JdbcConnectionPool;
+import org.sqlite.javax.SQLiteConnectionPoolDataSource;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -73,7 +73,7 @@ public class ShadowManagerDAOImpl implements ShadowManagerDAO {
         }
     }
 
-    private JdbcConnectionPool getPool() {
+    private SQLiteConnectionPoolDataSource getPool() {
         if (!database.isInitialized()) {
             throw new ShadowManagerDataException("Database pool not initialized. Shadow manager most likely isn't "
                     + "running yet. Wait for Shadow manager to be running.");
@@ -129,8 +129,8 @@ public class ShadowManagerDAOImpl implements ShadowManagerDAO {
                 .kv(LOG_THING_NAME_KEY, thingName)
                 .kv(LOG_SHADOW_NAME_KEY, shadowName)
                 .log("Updating shadow");
-        String sql = "MERGE INTO documents(thingName, shadowName, document, version, deleted, updateTime) "
-                + "KEY (thingName, shadowName) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT OR REPLACE INTO documents(thingName, shadowName, document, version, deleted, updateTime) "
+                + " VALUES (?, ?, ?, ?, ?, ?)";
         return execute(sql,
                 preparedStatement -> {
                     preparedStatement.setString(1, thingName);
@@ -187,8 +187,8 @@ public class ShadowManagerDAOImpl implements ShadowManagerDAO {
                 .kv(LOG_LOCAL_VERSION_KEY, request.getLocalVersion())
                 .kv(LOG_CLOUD_VERSION_KEY, request.getCloudVersion())
                 .log("Updating sync info");
-        String sql = "MERGE INTO sync(thingName, shadowName, lastSyncedDocument, cloudVersion, cloudDeleted, "
-                + "cloudUpdateTime, lastSyncTime, localVersion) KEY (thingName, shadowName) "
+        String sql = "INSERT OR REPLACE INTO sync(thingName, shadowName, lastSyncedDocument, cloudVersion, cloudDeleted, "
+                + "cloudUpdateTime, lastSyncTime, localVersion) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         return execute(sql,
                 preparedStatement -> {

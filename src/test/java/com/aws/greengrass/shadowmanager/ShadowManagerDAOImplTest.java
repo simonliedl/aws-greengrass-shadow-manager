@@ -11,7 +11,6 @@ import com.aws.greengrass.shadowmanager.model.dao.SyncInformation;
 import com.aws.greengrass.shadowmanager.util.JsonUtil;
 import com.aws.greengrass.testcommons.testutilities.GGExtension;
 import com.aws.greengrass.util.Pair;
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sqlite.javax.SQLiteConnectionPoolDataSource;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -58,7 +58,7 @@ class ShadowManagerDAOImplTest {
     private ShadowManagerDatabase mockDatabase;
 
     @Mock
-    private JdbcConnectionPool mockPool;
+    private SQLiteConnectionPoolDataSource mockPool;
 
     @Mock
     private Connection mockConnection;

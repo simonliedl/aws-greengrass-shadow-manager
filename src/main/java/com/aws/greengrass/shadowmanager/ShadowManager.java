@@ -15,6 +15,7 @@ import com.aws.greengrass.dependency.ImplementsService;
 import com.aws.greengrass.dependency.State;
 import com.aws.greengrass.deployment.DeviceConfiguration;
 import com.aws.greengrass.lifecyclemanager.PluginService;
+import com.aws.greengrass.logging.impl.config.LogConfig;
 import com.aws.greengrass.mqttclient.CallbackEventManager;
 import com.aws.greengrass.mqttclient.MqttClient;
 import com.aws.greengrass.shadowmanager.configuration.ComponentConfiguration;
@@ -53,6 +54,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Synchronized;
+import org.slf4j.event.Level;
 import software.amazon.awssdk.aws.greengrass.GreengrassCoreIPCService;
 import software.amazon.awssdk.crt.mqtt.MqttClientConnectionEvents;
 
