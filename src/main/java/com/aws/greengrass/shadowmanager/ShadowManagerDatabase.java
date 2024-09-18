@@ -38,7 +38,7 @@ public class ShadowManagerDatabase implements Closeable {
     private static final String DATABASE_NAME = "shadow";
     // see https://www.h2database.com/javadoc/org/h2/engine/DbSettings.html
     // these setting optimize for minimal disk space over concurrent performance
-    private static final String DATABASE_FORMAT = "jdbc:sqlite:%s/%s"
+    private static final String DATABASE_FORMAT = "jdbc:sqlite:%s/%s.db"
             ;
     private final SQLiteConnectionPoolDataSource dataSource;
 
@@ -63,6 +63,11 @@ public class ShadowManagerDatabase implements Closeable {
      */
     public ShadowManagerDatabase(Path path) {
         this.dataSource = new SQLiteConnectionPoolDataSource();
+        try {
+            Files.createDirectories(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         this.dataSource.setUrl(String.format(DATABASE_FORMAT, path, DATABASE_NAME));
         this.databasePath = path;
     }
